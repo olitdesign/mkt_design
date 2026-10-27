@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>디자인 QA 가이드</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<style>
+:root{
+  --bg:#ffffff; --surface:#f7f7fa; --raise:#ffffff; --ink:#232230; --sub:#6c6b7b; --line:#e5e4ee; --check:#bfbece;
+  --accent:#664fff; --accent-text:#4f3fc4; --accent-soft:#f0eeff; --accent-mid:#c9c2fd; --on-accent:#ffffff;
+  --font:"Pretendard Variable",Pretendard,-apple-system,"Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",sans-serif;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:84px}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font);line-height:1.65;font-size:16px;-webkit-font-smoothing:antialiased}
+
+/* 상단 고정 바: 탭 + 진행률 */
+.topbar{position:sticky;top:0;z-index:10;background:var(--bg);border-bottom:1px solid var(--line)}
+.topbar .in{max-width:1040px;margin:0 auto;padding:10px 20px;display:flex;align-items:center;gap:16px}
+.tabs{display:flex;gap:4px;overflow-x:auto;flex:1;min-width:0;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tabs a{flex:none;padding:7px 14px;border-radius:999px;color:var(--sub);text-decoration:none;font-size:14.5px;font-weight:600;white-space:nowrap}
+.tabs a:hover{background:var(--surface);color:var(--ink)}
+.tabs a.on{background:var(--accent-soft);color:var(--accent-text)}
+.prog{flex:none;display:flex;align-items:center;gap:10px;font-size:13.5px;color:var(--sub);font-variant-numeric:tabular-nums}
+.prog b{color:var(--accent-text);font-size:15px}
+.prog .bar{width:84px;height:6px;border-radius:3px;background:var(--line);overflow:hidden}
+.prog .bar i{display:block;height:100%;width:0;background:var(--accent);transition:width .25s}
+.prog button{font:inherit;font-size:12.5px;border:1px solid var(--line);background:transparent;color:var(--sub);padding:3px 9px;border-radius:6px;cursor:pointer}
+.prog button:hover{color:var(--ink);border-color:var(--sub)}
+
+.wrap{max-width:1040px;margin:0 auto;padding:0 20px}
+.hero{padding:56px 0 36px}
+.chip{display:inline-block;background:var(--accent-soft);color:var(--accent-text);font-size:13.5px;font-weight:700;padding:3px 12px;border-radius:999px;margin-bottom:16px}
+.hero h1{margin:0;font-size:clamp(30px,5.5vw,46px);line-height:1.2;font-weight:700;letter-spacing:-.02em}
+.hero h1 em{font-style:normal;color:var(--accent)}
+.hero p{margin:16px 0 0;max-width:620px;color:var(--sub);white-space:pre-line}
+
+section{padding:8px 0 44px}
+.head{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:6px}
+.no{font-size:34px;line-height:1;font-weight:800;color:var(--accent-mid);font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.head h2{margin:0;font-size:24px;font-weight:700;letter-spacing:-.01em}
+.tag{font-size:12.5px;font-weight:700;padding:2px 10px;border-radius:999px}
+.tag.must{background:var(--accent-soft);color:var(--accent-text)}
+.tag.opt{background:var(--surface);color:var(--sub);border:1px solid var(--line)}
+.desc{margin:4px 0 18px;color:var(--sub);font-size:15px;white-space:pre-line}
+
+.groups{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:6px 20px 8px}
+.card.hl{background:var(--raise);border:1.5px solid var(--accent)}
+.card h3{margin:14px 0 4px;font-size:15.5px;display:flex;align-items:center;gap:8px}
+.card h3::before{content:"";width:4px;height:14px;border-radius:2px;background:var(--accent)}
+.card ul{list-style:none;margin:0;padding:0}
+.card.two ul{display:grid;grid-template-columns:1fr 1fr;column-gap:28px}
+.card li{border-top:1px solid var(--line)}
+.card ul li:first-child{border-top:0}
+.card.two li:nth-child(2){border-top:0}
+
+label.item{display:flex;gap:10px;align-items:flex-start;padding:10px 0;cursor:pointer}
+label.item input{position:absolute;opacity:0;pointer-events:none}
+.box{flex:none;width:22px;height:22px;margin-top:2px;border:2px solid var(--check);border-radius:6px;display:grid;place-items:center;transition:background .15s,border-color .15s}
+.box svg{width:14px;height:14px;stroke:var(--on-accent);stroke-width:3;fill:none;stroke-linecap:round;stroke-linejoin:round;opacity:0}
+label.item input:checked + .box{background:var(--accent);border-color:var(--accent)}
+label.item input:checked + .box svg{opacity:1}
+label.item input:checked ~ .txt{color:var(--sub);text-decoration:line-through;text-decoration-color:var(--check)}
+label.item input:focus-visible + .box{outline:3px solid var(--accent-mid);outline-offset:2px}
+.n{flex:none;width:1.1em;margin-top:1px;color:var(--accent-text);font-weight:700;font-size:13.5px;font-variant-numeric:tabular-nums}
+.txt{white-space:pre-line;font-size:14.5px;line-height:1.55;word-break:keep-all}
+
+footer{border-top:1px solid var(--line);padding:20px 0 48px;color:var(--sub);font-size:13px}
+
+@media (max-width:760px){
+  .topbar .in{flex-wrap:wrap;gap:8px;padding:8px 14px}
+  .tabs{flex-basis:100%;order:2}
+  .prog{order:1;width:100%;justify-content:space-between}
+  .prog .bar{flex:1;width:auto}
+  .wrap{padding:0 16px}
+  html{scroll-padding-top:110px}
+  .hero{padding:36px 0 24px}
+  .groups{grid-template-columns:1fr}
+  .card.two ul{grid-template-columns:1fr}
+  .card.two li:nth-child(2){border-top:1px solid var(--line)}
+  .no{font-size:28px}
+  .head h2{font-size:21px}
+}
+@media print{.topbar{display:none}body{background:#fff}.card{break-inside:avoid}}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{transition:none!important}}
+
+/* ---- 화이트 + 시그니처 퍼플 테마 (가운데 정렬 레이아웃 유지) ---- */
+.hero{text-align:center}
+.hero p{margin-left:auto;margin-right:auto}
+.card{border-radius:18px}
+</style>
+</head>
+<body>
+
+<div class="topbar"><div class="in">
+  <nav class="tabs" id="tabs" aria-label="섹션 바로가기"></nav>
+  <div class="prog" aria-live="polite">
+    <span><b id="pct">0%</b> <span id="cnt"></span></span>
+    <span class="bar"><i id="fill"></i></span>
+    <button type="button" id="reset">초기화</button>
+  </div>
+</div></div>
+
+<div class="wrap">
+  <header class="hero">
+    <span class="chip" id="team"></span>
+    <h1 id="title"></h1>
+    <p id="intro"></p>
+  </header>
+  <main id="main"></main>
+  <footer id="foot"></footer>
+</div>
+
+<!-- 내용 수정은 qa-data.js 에서 하세요 -->
+<script src="qa-data.js"></script>
+<script>
+(function(){
+  var D=window.QA, SVG="http://www.w3.org/2000/svg", KEY=D.storageKey||"qa-guide";
+  function el(t,c,x){var e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e;}
+  var saved=[];try{saved=JSON.parse(localStorage.getItem(KEY)||"[]");}catch(e){}
+  var inputs=[];
+
+  function item(text,num){
+    var li=el("li"),lab=el("label","item"),inp=document.createElement("input");
+    inp.type="checkbox";inp.checked=saved.indexOf(text)>-1;inp.dataset.key=text;
+    var box=el("span","box"),svg=document.createElementNS(SVG,"svg"),p=document.createElementNS(SVG,"path");
+    svg.setAttribute("viewBox","0 0 16 16");p.setAttribute("d","M3 8.5l3.2 3L13 4.5");svg.appendChild(p);box.appendChild(svg);
+    lab.appendChild(inp);lab.appendChild(box);
+    if(num)lab.appendChild(el("span","n",String(num)));
+    lab.appendChild(el("span","txt",text));li.appendChild(lab);
+    inputs.push(inp);inp.addEventListener("change",update);return li;
+  }
+  function list(items,numbered){var ul=el("ul");items.forEach(function(t,i){ul.appendChild(item(t,numbered?i+1:0));});return ul;}
+
+  var t=document.getElementById("title"),i=D.title.lastIndexOf(" ");
+  if(i>0){t.appendChild(document.createTextNode(D.title.slice(0,i+1)));var em=el("em",null,D.title.slice(i+1));t.appendChild(em);}else{t.textContent=D.title;}
+  document.title=(D.team?"["+D.team+"] ":"")+D.title;
+  document.getElementById("team").textContent=D.team||"";
+  document.getElementById("intro").textContent=D.intro||"";
+  document.getElementById("foot").textContent=(D.team?"["+D.team+"] ":"")+D.title+" · 체크 상태는 이 브라우저에만 저장됩니다.";
+
+  var main=document.getElementById("main"),tabs=document.getElementById("tabs");
+  D.sections.forEach(function(s,idx){
+    var a=el("a",null,s.tabTitle||s.title);a.href="#"+s.id;tabs.appendChild(a);
+    var sec=el("section");sec.id=s.id;
+    var head=el("div","head");
+    head.appendChild(el("span","no",(idx+1<10?"0":"")+(idx+1)));
+    head.appendChild(el("h2",null,s.title));
+    if(s.tag)head.appendChild(el("span","tag "+(s.tagType||"opt"),s.tag));
+    sec.appendChild(head);
+    if(s.desc)sec.appendChild(el("p","desc",s.desc));
+    if(s.groups){
+      var g=el("div","groups");
+      s.groups.forEach(function(gr){var c=el("div","card");c.appendChild(el("h3",null,gr.title));c.appendChild(list(gr.items,gr.numbered));g.appendChild(c);});
+      sec.appendChild(g);
+    }else{
+      var c=el("div","card"+(s.highlight?" hl two":""));c.appendChild(list(s.items,false));sec.appendChild(c);
+    }
+    main.appendChild(sec);
+  });
+
+  function update(){
+    var n=inputs.filter(function(b){return b.checked}).length,tt=inputs.length,p=tt?Math.round(n/tt*100):0;
+    document.getElementById("pct").textContent=p+"%";
+    document.getElementById("cnt").textContent=n+"/"+tt;
+    document.getElementById("fill").style.width=p+"%";
+    try{localStorage.setItem(KEY,JSON.stringify(inputs.filter(function(b){return b.checked}).map(function(b){return b.dataset.key})));}catch(e){}
+  }
+  document.getElementById("reset").addEventListener("click",function(){inputs.forEach(function(b){b.checked=false});update();});
+
+  var links=[].slice.call(tabs.querySelectorAll("a"));
+  var cur=null;
+  function setOn(id){
+    if(id===cur)return;cur=id;
+    links.forEach(function(a){
+      var on=a.getAttribute("href")==="#"+id;a.classList.toggle("on",on);
+      if(on){ /* 탭 바만 가로로 이동 (페이지 스크롤에는 영향 없음) */
+        var l=tabs.scrollLeft+a.getBoundingClientRect().left-tabs.getBoundingClientRect().left-(tabs.clientWidth-a.offsetWidth)/2;
+        tabs.scrollTo({left:l,behavior:"smooth"});
+      }
+    });
+  }
+  if("IntersectionObserver" in window){
+    var io=new IntersectionObserver(function(es){es.forEach(function(e){
+      if(e.isIntersecting)setOn(e.target.id);
+    });},{rootMargin:"-20% 0px -70% 0px"});
+    document.querySelectorAll("main section").forEach(function(s){io.observe(s)});
+  }
+  update();
+})();
+</script>
+</body>
+</html>
